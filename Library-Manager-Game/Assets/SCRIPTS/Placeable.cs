@@ -7,17 +7,23 @@ public class Placeable : MonoBehaviour
 {
     public string itemName;
     
-    [Header("3D Dimensions")]
-    public int width = 1;  // X
-    public int depth = 1;  // Z
-    public int height = 1; // Y
+    [Header("Physical Dimensions (Floats)")]
+    public float width = 1f;  // X
+    public float depth = 1f;  // Z
+    public float height = 1f; // Y
 
-    public Vector2Int GetFootprint() => new Vector2Int(width, depth);
+    // Separate physical size from grid occupancy.
+    // A 1.8f wide object still locks down 2 whole grid cells.
+    public int GridWidth => Mathf.CeilToInt(width);
+    public int GridDepth => Mathf.CeilToInt(depth);
 
-    private void OnDrawGizmos()
+    public Vector2Int GetFootprint() => new Vector2Int(GridWidth, GridDepth);
+
+    // 'protected virtual' allows child scripts (like BookContainer) to add to this, 
+    // rather than destroying it.
+    protected virtual void OnDrawGizmos()
     {
 #if UNITY_EDITOR
-        // Check if this object OR any child of this object is currently selected
         if (IsSelectedRecursive(transform))
         {
             DrawPlacementGizmos();
@@ -27,12 +33,9 @@ public class Placeable : MonoBehaviour
 
     private void DrawPlacementGizmos()
     {
-        // 1. Draw the Pivot Point (The "Anchor")
         Gizmos.color = Color.yellow;
         Gizmos.DrawSphere(transform.position, 0.1f);
         
-        // 2. Draw the 3D Occupancy Volume
-        // Pivot is bottom-left-front, so center is half of each dimension
         Vector3 center = new Vector3(width / 2f, height / 2f, depth / 2f);
         Vector3 boxSize = new Vector3(width, height, depth);
         
@@ -46,30 +49,39 @@ public class Placeable : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    private bool IsSelectedRecursive(Transform target)
+    private void OnValidate()
     {
-        // Check if the current object is selected
-        if (Selection.activeGameObject == target.gameObject) return true;
+        Vector3 newSize = new Vector3(width, height, depth);
+        Vector3 newCenter = new Vector3(width / 2f, height / 2f, depth / 2f);
 
-        // Check if any child of this object is the active selection
+        // Auto-size BoxCollider
+        BoxCollider box = GetComponent<BoxCollider>();
+        if (box != null)
+        {
+            box.size = newSize;
+            box.center = newCenter;
+        }
+
+        // Auto-size NavMeshObstacle
+        UnityEngine.AI.NavMeshObstacle obstacle = GetComponent<UnityEngine.AI.NavMeshObstacle>();
+        if (obstacle != null)
+        {
+            obstacle.size = newSize;
+            obstacle.center = newCenter;
+            
+            // Best practice: Ensure it actually carves the mesh dynamically
+            obstacle.carving = true; 
+        }
+    }
+
+    protected bool IsSelectedRecursive(Transform target)
+    {
+        if (Selection.activeGameObject == target.gameObject) return true;
         foreach (Transform child in target)
         {
             if (IsSelectedRecursive(child)) return true;
         }
-
         return false;
     }
 #endif
-
-    // OnValidate runs whenever you change a value in the Inspector
-    private void OnValidate()
-    {
-        BoxCollider box = GetComponent<BoxCollider>();
-        if (box != null)
-        {
-            // Automatically align the collider to our grid dimensions
-            box.size = new Vector3(width, height, depth);
-            box.center = new Vector3(width / 2f, height / 2f, depth / 2f);
-        }
-    }
 }

@@ -2,11 +2,13 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 
 public class PlacementManager : MonoBehaviour
 {
     [SerializeField] private GridManager gridManager;
     [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private NavMeshSurface navMeshSurface;
 
     private bool isBuildModeActive = false;
     private Placeable currentPendingPrefab;
@@ -55,7 +57,7 @@ public class PlacementManager : MonoBehaviour
             }
 
             // 3. Ensure we use the exact footprint from the Placeable data
-            Vector2Int footprint = new Vector2Int(currentPendingPrefab.width, currentPendingPrefab.depth);
+            Vector2Int footprint = currentPendingPrefab.GetFootprint();
 
             if (Mouse.current.leftButton.wasPressedThisFrame)
             {
@@ -89,25 +91,32 @@ public class PlacementManager : MonoBehaviour
     }
 
     private void PlaceObject(Vector3Int startGridPos, Vector3 worldPos)
-{
-    GameObject newObj = Instantiate(currentPendingPrefab.gameObject, worldPos, Quaternion.identity);
-
-    // Register every coordinate in the footprint
-    for (int x = 0; x < currentPendingPrefab.width; x++)
     {
-        for (int z = 0; z < currentPendingPrefab.depth; z++)
+        // 1. Spawn the final object in the scene
+        GameObject newObj = Instantiate(currentPendingPrefab.gameObject, worldPos, Quaternion.identity);
+
+        // 2. Register EVERY coordinate in the footprint to prevent overlapping
+        // We use the integer properties (GridWidth/GridDepth) for the loops
+        for (int x = 0; x < currentPendingPrefab.GridWidth; x++)
         {
-            // We use Y=0 for the dictionary key to keep it 2D-spatial, 
-            // unless you plan on stacking objects vertically later.
-            Vector3Int cellToAdd = startGridPos + new Vector3Int(x, 0, z);
-            
-            if (!occupiedCells.ContainsKey(cellToAdd))
+            for (int z = 0; z < currentPendingPrefab.GridDepth; z++)
             {
-                occupiedCells.Add(cellToAdd, newObj);
+                Vector3Int cellToAdd = startGridPos + new Vector3Int(x, 0, z);
+                
+                if (!occupiedCells.ContainsKey(cellToAdd))
+                {
+                    occupiedCells.Add(cellToAdd, newObj);
+                }
             }
         }
+
+        // 3. Update Pathfinding
+        // Tell the NavMesh to recalculate the floor around the new physical obstacle
+        if (navMeshSurface != null)
+        {
+            navMeshSurface.BuildNavMesh();
+        }
     }
-}
 
     public void SelectObjectToBuild(Placeable prefab)
     {
