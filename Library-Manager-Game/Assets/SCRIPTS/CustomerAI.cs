@@ -82,6 +82,29 @@ public class CustomerAI : MonoBehaviour
         }
     }
 
+    private void HandleWaiting()
+    {
+        // Every few seconds, check if a shelf has opened up
+        currentWaitTimer += Time.deltaTime;
+        
+        // Check for shelf every 2 seconds to save performance
+        if (Mathf.FloorToInt(currentWaitTimer) % 2 == 0) 
+        {
+            FindSmartTargets();
+            if (targetShelf != null)
+            {
+                ChangeState(CustomerState.WalkingToShelf);
+                return;
+            }
+        }
+
+        if (currentWaitTimer >= maxWaitTime)
+        {
+            Debug.Log("Gave up waiting for a shelf.");
+            ChangeState(CustomerState.Leaving);
+        }
+    }
+
     private void HandleQueuing()
     {
         // 1. Check if we are first in line AND the desk is ready
@@ -179,9 +202,14 @@ public class CustomerAI : MonoBehaviour
     private bool HasReachedDestination()
     {
         if (agent.pathPending) return false;
-        if (agent.remainingDistance <= agent.stoppingDistance)
+        
+        // If we are within a reasonable range of the exit/target, count it as reached
+        if (agent.remainingDistance <= agent.stoppingDistance + 0.5f) 
         {
-            if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f) return true;
+            if (!agent.hasPath || agent.velocity.sqrMagnitude < 0.2f)
+            {
+                return true;
+            }
         }
         return false;
     }
