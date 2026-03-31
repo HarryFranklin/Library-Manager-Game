@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3896392178525670146}
   m_Layer: 7
   m_Name: P-Green-Tall
-  m_TagString: Untagged
+  m_TagString: BookContainer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -52,10 +52,10 @@ MonoBehaviour:
   width: 1
   depth: 1
   height: 2
-  maxBooks: 10
-  currentBooks: 10
   interactionNodes:
   - {fileID: 1353094260366534910}
+  maxBooks: 10
+  currentBooks: 10
 --- !u!65 &-6845404626062736566
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -104,7 +104,6 @@ GameObject:
   - component: {fileID: 1353094260366534910}
   - component: {fileID: 6379680721818514476}
   - component: {fileID: 8019428794076671344}
-  - component: {fileID: 5552090079041431067}
   m_Layer: 7
   m_Name: Interaction-Node-Customer
   m_TagString: Untagged
@@ -160,7 +159,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: c73454e76c115e7478b4440c32c47ff6, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -184,27 +183,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &5552090079041431067
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8905431090592305500}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &3295631682899805393
 PrefabInstance:
   m_ObjectHideFlags: 0

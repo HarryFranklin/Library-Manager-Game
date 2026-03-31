@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: -3711950280531308544}
   m_Layer: 7
   m_Name: P-Blue-Long
-  m_TagString: Untagged
+  m_TagString: BookContainer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -53,11 +53,11 @@ MonoBehaviour:
   width: 2
   depth: 1
   height: 1
-  maxBooks: 10
-  currentBooks: 10
   interactionNodes:
   - {fileID: 3032178550047540641}
   - {fileID: 7332320100826770160}
+  maxBooks: 10
+  currentBooks: 10
 --- !u!65 &7652165672186944808
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -106,7 +106,6 @@ GameObject:
   - component: {fileID: 3032178550047540641}
   - component: {fileID: 7852911911590404627}
   - component: {fileID: 7451477672753786807}
-  - component: {fileID: 999438904255464689}
   m_Layer: 7
   m_Name: Interaction-Node-1
   m_TagString: Untagged
@@ -186,27 +185,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &999438904255464689
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2988076663282717934}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6666540286427014351
 GameObject:
   m_ObjectHideFlags: 0
@@ -218,7 +196,6 @@ GameObject:
   - component: {fileID: 7332320100826770160}
   - component: {fileID: 8304145686368904309}
   - component: {fileID: 5739645568811194834}
-  - component: {fileID: 2313072501722335381}
   m_Layer: 7
   m_Name: Interaction-Node-2
   m_TagString: Untagged
@@ -298,27 +275,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &2313072501722335381
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6666540286427014351}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &9185454736087429689
 PrefabInstance:
   m_ObjectHideFlags: 0

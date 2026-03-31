@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class CustomerAI : MonoBehaviour
@@ -15,6 +16,10 @@ public class CustomerAI : MonoBehaviour
         Leaving
     }
 
+    [Header("FX References")]
+    public GameObject floatingTextPrefab;
+    public Transform headTransform;
+
     [Header("State")]
     public CustomerState currentState = CustomerState.Entering;
 
@@ -22,12 +27,11 @@ public class CustomerAI : MonoBehaviour
     public float browseTime = 3f;
     public float payTime = 2f;
 
-    // References
-    private NavMeshAgent agent;
     private BookContainer targetShelf;
     private CheckoutDesk targetDesk;
+    private Transform exitNode; 
     private CustomerSpawner mySpawner;
-    private Transform exitNode; // Where they go to leave
+    private NavMeshAgent agent;
 
     private void Awake()
     {
@@ -36,45 +40,36 @@ public class CustomerAI : MonoBehaviour
 
     private void Start()
     {
-        // For this vertical slice, the customer automatically finds targets on spawn.
-        // Later, a 'CustomerManager' should assign these to avoid expensive Find() calls.
-        FindTargets();
+        GameObject exitObj = GameObject.FindGameObjectWithTag("Exit");
+        if (exitObj != null) exitNode = exitObj.transform;
+
+        FindSmartTargets();
         
-        if (targetShelf != null)
+        if (targetShelf != null && targetDesk != null)
         {
             ChangeState(CustomerState.WalkingToShelf);
         }
         else
         {
-            Debug.LogWarning("Customer spawned but no shelves found! Leaving.");
+            Debug.LogWarning("Missing shelf or checkout desk. Leaving.");
             ChangeState(CustomerState.Leaving);
         }
     }
 
     private void Update()
     {
-        // The State Machine Logic
         switch (currentState)
         {
             case CustomerState.WalkingToShelf:
-                if (HasReachedDestination())
-                {
-                    ChangeState(CustomerState.Browsing);
-                }
+                if (HasReachedDestination()) ChangeState(CustomerState.Browsing);
                 break;
 
             case CustomerState.WalkingToDesk:
-                if (HasReachedDestination())
-                {
-                    ChangeState(CustomerState.Paying);
-                }
+                if (HasReachedDestination()) ChangeState(CustomerState.Paying);
                 break;
 
             case CustomerState.Leaving:
-                if (HasReachedDestination())
-                {
-                    Destroy(gameObject); // Customer leaves the game
-                }
+                if (HasReachedDestination()) Destroy(gameObject);
                 break;
         }
     }
@@ -83,12 +78,11 @@ public class CustomerAI : MonoBehaviour
     {
         currentState = newState;
 
-        // Trigger one-time actions when entering a new state
         switch (currentState)
         {
             case CustomerState.WalkingToShelf:
-                Transform node = targetShelf.GetAvailableNode(transform.position);
-                agent.SetDestination(node != null ? node.position : targetShelf.transform.position);
+                Transform shelfNode = targetShelf.ReserveSlot();
+                agent.SetDestination(shelfNode != null ? shelfNode.position : targetShelf.transform.position);
                 break;
 
             case CustomerState.Browsing:
@@ -96,7 +90,11 @@ public class CustomerAI : MonoBehaviour
                 break;
 
             case CustomerState.WalkingToDesk:
-                agent.SetDestination(targetDesk.customerNode.position);
+                targetShelf.ReleaseSlot(); // Free up the bookshelf
+                
+                // Reserve a spot at the desk using the inherited Placeable logic
+                Transform deskNode = targetDesk.ReserveSlot();
+                agent.SetDestination(deskNode != null ? deskNode.position : targetDesk.transform.position);
                 break;
 
             case CustomerState.Paying:
@@ -104,21 +102,11 @@ public class CustomerAI : MonoBehaviour
                 break;
 
             case CustomerState.Leaving:
-                if (HasReachedDestination())
-                {
-                    // Tell the spawner we are leaving to free up a slot in the population cap
-                    if (mySpawner != null)
-                    {
-                        mySpawner.OnCustomerLeft();
-                    }
-                    
-                    Destroy(gameObject); 
-                }
+                if (targetDesk != null) targetDesk.ReleaseSlot(); // Free up the desk
+                if (exitNode != null) agent.SetDestination(exitNode.position);
                 break;
-                    }
-                }
-
-    // --- Coroutines for timed actions ---
+        }
+    }
 
     private IEnumerator BrowseRoutine()
     {
@@ -126,12 +114,11 @@ public class CustomerAI : MonoBehaviour
         
         if (targetShelf.TryTakeBook())
         {
-            // Book acquired, head to the till
             ChangeState(CustomerState.WalkingToDesk);
         }
         else
         {
-            // Shelf was empty, leave disappointed
+            targetShelf.ReleaseSlot();
             ChangeState(CustomerState.Leaving);
         }
     }
@@ -140,41 +127,66 @@ public class CustomerAI : MonoBehaviour
     {
         yield return new WaitForSeconds(payTime);
         targetDesk.ProcessPayment();
+
+        if (EconomyManager.Instance != null)
+        {
+            EconomyManager.Instance.AddMoney(1);
+        }
+
+        // Trigger the popup via the Manager
+        if (PopupManager.Instance != null)
+        {
+            Vector3 spawnPos = headTransform != null ? headTransform.position : transform.position;
+            PopupManager.Instance.ShowGain(1, spawnPos);
+        }
+
         ChangeState(CustomerState.Leaving);
     }
 
-    // --- Helper Methods ---
-
     private bool HasReachedDestination()
     {
-        // Check if the agent is actively calculating a path
         if (agent.pathPending) return false;
-        
-        // Check if they are within the stopping distance
         if (agent.remainingDistance <= agent.stoppingDistance)
         {
-            // Ensure they aren't just paused/slowed down
-            if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
-            {
-                return true;
-            }
+            if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f) return true;
         }
         return false;
-    }
-
-    private void FindTargets()
-    {
-        // Prototype logic: Just grab the first ones it finds in the scene
-        targetShelf = FindFirstObjectByType<BookContainer>();
-        targetDesk = FindFirstObjectByType<CheckoutDesk>();
-        
-        // Look for an object named "Entrance" to use as the exit node
-        GameObject entrance = GameObject.Find("Entrance");
-        if (entrance != null) exitNode = entrance.transform;
     }
 
     public void SetSpawner(CustomerSpawner spawner)
     {
         mySpawner = spawner;
+    }
+
+    private void FindSmartTargets()
+    {
+        // 1. Tag-based lookup for Bookshelves
+        GameObject[] shelfObjects = GameObject.FindGameObjectsWithTag("BookContainer");
+        List<BookContainer> availableShelves = new List<BookContainer>();
+
+        foreach (GameObject obj in shelfObjects)
+        {
+            // TryGetComponent is heavily optimised and prevents null reference exceptions
+            if (obj.TryGetComponent(out BookContainer shelf))
+            {
+                if (shelf.HasAvailableSlot())
+                {
+                    availableShelves.Add(shelf);
+                }
+            }
+        }
+
+        if (availableShelves.Count > 0)
+        {
+            int randomIndex = Random.Range(0, availableShelves.Count);
+            targetShelf = availableShelves[randomIndex];
+        }
+
+        // 2. Tag-based lookup for the Checkout Desk
+        GameObject deskObj = GameObject.FindGameObjectWithTag("CheckoutDesk");
+        if (deskObj != null)
+        {
+            targetDesk = deskObj.GetComponent<CheckoutDesk>();
+        }
     }
 }
