@@ -29,7 +29,7 @@ public class PopupManager : MonoBehaviour
         get
         {
             if (instance == null)
-                instance = FindFirstObjectByType<PopupManager>();
+                instance = FindAnyObjectByType<PopupManager>();
             return instance;
         }
     }
