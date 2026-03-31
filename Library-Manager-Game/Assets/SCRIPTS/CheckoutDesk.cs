@@ -1,38 +1,80 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class CheckoutDesk : Placeable
 {
-    [Header("Staff Interaction")]
-    [Tooltip("Where the librarian/staff member stands to work.")]
+    [Header("Staffing")]
     public Transform staffNode;
+    public bool isManned = false;
 
-    // We can track if a staff member is currently working here
-    public bool HasStaff { get; private set; } = false;
+    [Header("Queue Settings")]
+    [Tooltip("The points where customers stand, from front (index 0) to back.")]
+    public List<Transform> queueNodes = new List<Transform>();
+    
+    // Logic: Track who is in line to manage their positions
+    private List<CustomerAI> customersInQueue = new List<CustomerAI>();
 
-    public void SetStaffPresence(bool isPresent)
+    public Vector3 JoinQueue(CustomerAI customer)
     {
-        HasStaff = isPresent;
+        if (!customersInQueue.Contains(customer))
+        {
+            customersInQueue.Add(customer);
+        }
+        return GetPositionInLine(customer);
+    }
+
+    public void LeaveQueue(CustomerAI customer)
+    {
+        if (customersInQueue.Contains(customer))
+        {
+            customersInQueue.Remove(customer);
+            UpdateQueuePositions();
+        }
+    }
+
+    private void UpdateQueuePositions()
+    {
+        for (int i = 0; i < customersInQueue.Count; i++)
+        {
+            // Tell each customer to move to their new updated spot
+            customersInQueue[i].UpdateQueueDestination(GetPositionInLine(customersInQueue[i]));
+        }
+    }
+
+    public Vector3 GetPositionInLine(CustomerAI customer)
+    {
+        int index = customersInQueue.IndexOf(customer);
+        
+        // If they are within the number of nodes we placed, give them that spot
+        if (index >= 0 && index < queueNodes.Count)
+        {
+            return queueNodes[index].position;
+        }
+        
+        // If the line is longer than nodes, they stand at the very back
+        return queueNodes[queueNodes.Count - 1].position;
+    }
+
+    public bool IsAtFront(CustomerAI customer)
+    {
+        return customersInQueue.Count > 0 && customersInQueue[0] == customer;
     }
 
     public void ProcessPayment()
     {
-        Debug.Log($"{gameObject.name}: Payment processed! Money increased.");
+        Debug.Log($"{gameObject.name}: Transaction Complete.");
     }
 
     protected override void OnDrawGizmos()
     {
-        // 1. Draw the base placeable gizmos (yellow pivot, green bounds, and ALL interaction nodes)
         base.OnDrawGizmos();
-
 #if UNITY_EDITOR
-        // 2. Draw the specific staff node
         if (IsSelectedRecursive(transform))
         {
-            if (staffNode != null)
+            Gizmos.color = Color.blue;
+            foreach (var node in queueNodes)
             {
-                Gizmos.color = Color.cyan; // Cyan for Staff
-                Gizmos.DrawWireSphere(staffNode.position, 0.2f);
-                Gizmos.DrawLine(transform.position, staffNode.position);
+                if (node != null) Gizmos.DrawWireSphere(node.position, 0.3f);
             }
         }
 #endif

@@ -12,6 +12,7 @@ public class CustomerAI : MonoBehaviour
         WalkingToShelf,
         Browsing,
         WalkingToDesk,
+        Queuing,
         Paying,
         Leaving
     }
@@ -26,6 +27,10 @@ public class CustomerAI : MonoBehaviour
     [Header("Timers")]
     public float browseTime = 3f;
     public float payTime = 2f;
+
+    [Header("Patience Settings")]
+    public float maxWaitTime = 20f;
+    private float currentWaitTimer = 0f;
 
     private BookContainer targetShelf;
     private CheckoutDesk targetDesk;
@@ -65,12 +70,34 @@ public class CustomerAI : MonoBehaviour
                 break;
 
             case CustomerState.WalkingToDesk:
-                if (HasReachedDestination()) ChangeState(CustomerState.Paying);
-                break;
+            if (HasReachedDestination()) ChangeState(CustomerState.Queuing);
+            break;
 
-            case CustomerState.Leaving:
-                if (HasReachedDestination()) Destroy(gameObject);
+            case CustomerState.Queuing:
+                HandleQueuing();
                 break;
+                
+            case CustomerState.Paying:
+                break;
+        }
+    }
+
+    private void HandleQueuing()
+    {
+        // 1. Check if we are first in line AND the desk is ready
+        // Note: For now, we'll assume it's always ready until we add StaffAI
+        if (targetDesk.IsAtFront(this))
+        {
+            ChangeState(CustomerState.Paying);
+            return;
+        }
+
+        // 2. Future Logic: Patience/Anger
+        currentWaitTimer += Time.deltaTime;
+        if (currentWaitTimer >= maxWaitTime)
+        {
+            Debug.Log("Customer lost patience and left!");
+            ChangeState(CustomerState.Leaving);
         }
     }
 
@@ -89,20 +116,18 @@ public class CustomerAI : MonoBehaviour
                 StartCoroutine(BrowseRoutine());
                 break;
 
-            case CustomerState.WalkingToDesk:
-                targetShelf.ReleaseSlot(); // Free up the bookshelf
-                
-                // Reserve a spot at the desk using the inherited Placeable logic
-                Transform deskNode = targetDesk.ReserveSlot();
-                agent.SetDestination(deskNode != null ? deskNode.position : targetDesk.transform.position);
-                break;
+           case CustomerState.WalkingToDesk:
+            targetShelf.ReleaseSlot();
+            // Ask the desk where to stand
+            agent.SetDestination(targetDesk.JoinQueue(this));
+            break;
 
             case CustomerState.Paying:
                 StartCoroutine(PayRoutine());
                 break;
 
             case CustomerState.Leaving:
-                if (targetDesk != null) targetDesk.ReleaseSlot(); // Free up the desk
+                if(targetDesk != null) targetDesk.LeaveQueue(this);
                 if (exitNode != null) agent.SetDestination(exitNode.position);
                 break;
         }
@@ -141,6 +166,14 @@ public class CustomerAI : MonoBehaviour
         }
 
         ChangeState(CustomerState.Leaving);
+    }
+
+    public void UpdateQueueDestination(Vector3 newPoint)
+    {
+        if (currentState == CustomerState.Queuing || currentState == CustomerState.WalkingToDesk)
+        {
+            agent.SetDestination(newPoint);
+        }
     }
 
     private bool HasReachedDestination()
