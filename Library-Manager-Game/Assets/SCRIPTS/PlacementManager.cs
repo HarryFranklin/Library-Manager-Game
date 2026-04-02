@@ -38,6 +38,7 @@ public class PlacementManager : MonoBehaviour
 
     private void HandlePlacementLogic()
     {
+        // Get mouse position
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         
         if (Physics.Raycast(ray, out RaycastHit hit, 100f, groundLayer))
@@ -95,7 +96,7 @@ public class PlacementManager : MonoBehaviour
         // 1. Spawn the final object in the scene
         GameObject newObj = Instantiate(currentPendingPrefab.gameObject, worldPos, Quaternion.identity);
 
-        // 2. Register EVERY coordinate in the footprint to prevent overlapping
+        // 2. Register every coordinate in the footprint to prevent overlapping
         // We use the integer properties (GridWidth/GridDepth) for the loops
         for (int x = 0; x < currentPendingPrefab.GridWidth; x++)
         {

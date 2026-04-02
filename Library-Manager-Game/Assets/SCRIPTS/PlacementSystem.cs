@@ -34,7 +34,6 @@ public class PlacementSystem : MonoBehaviour
         // Instantiate the real object at the same position as the ghost
         Instantiate(finalObjectPrefab, previewObject.transform.position, Quaternion.identity);
         
-        // NOTE: In a full game, we would store this in a Dictionary<Vector3Int, GameObject> 
-        // to track "occupied" cells so you can't stack books on top of each other.
+        // NOTE: In a full game, we would store this in a Dictionary<Vector3Int, GameObject> to track "occupied" cells
     }
 }

@@ -8,6 +8,7 @@ public class PopupText : MonoBehaviour
     public TextMeshProUGUI textComponent;
 
     [Header("Animation Settings")]
+    // Fade and move curves
     public AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
     public AnimationCurve moveCurve = new AnimationCurve(
         new Keyframe(0f, 0f, 0f, 2f),
@@ -27,6 +28,7 @@ public class PopupText : MonoBehaviour
 
     public void Initialise(string text, Color color, float fontSize, float animationDuration, float moveDistance)
     {
+        // Set text, size and colour
         if (textComponent == null) return;
 
         textComponent.text = text;
