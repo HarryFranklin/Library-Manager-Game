@@ -506,12 +506,12 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 78517946}
         m_TargetAssemblyTypeName: PlacementManager, Assembly-CSharp
         m_MethodName: SelectObjectToBuild
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgument: {fileID: -3428247845825539416, guid: ef68ec6ae18d2854b86e5d64a81456bf, type: 3}
           m_ObjectArgumentAssemblyTypeName: Placeable, Assembly-CSharp
           m_IntArgument: 0
           m_FloatArgument: 0
@@ -1897,7 +1897,7 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 1
-  m_VoxelSize: 0.125
+  m_VoxelSize: 0.1
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: a322b10907d118c42bb11c10dccc439b, type: 2}
   m_BuildHeightMesh: 0
@@ -1959,7 +1959,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5313555816026780932, guid: 40742c2a4cea6564f81d8cc36b8d7ab8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -6
+      value: -6.5
       objectReference: {fileID: 0}
     - target: {fileID: 5313555816026780932, guid: 40742c2a4cea6564f81d8cc36b8d7ab8, type: 3}
       propertyPath: m_LocalPosition.y
@@ -2153,11 +2153,11 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
+  m_Radius: 1.25
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &656284212
 MeshRenderer:
@@ -2522,14 +2522,26 @@ MonoBehaviour:
   popupOffset: {x: 0, y: 1, z: 0}
   defaultDuration: 1.5
   defaultMoveDistance: 2
-  defaultFontSize: 36
+  defaultFontSize: 30
   gainColor: {r: 0, g: 1, b: 0, a: 1}
   lossColor: {r: 1, g: 0, b: 0, a: 1}
+  waitBarPrefab: {fileID: 5652876980131200667, guid: 215c4daedfc1b3a49bfa3de8f76998b9, type: 3}
 --- !u!4 &904058995 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5951408003794745248, guid: 7caa779423c3f554881af09dd4aa0027, type: 3}
   m_PrefabInstance: {fileID: 1564632428}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &962488299 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4046275196022353424, guid: 78d21e6d302091c4c9eea39fddc11984, type: 3}
+  m_PrefabInstance: {fileID: 679202779}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09be9cf5e7843ef43b913deca436e6f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BookContainer
 --- !u!1 &1007923036
 GameObject:
   m_ObjectHideFlags: 0
@@ -2712,7 +2724,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CustomerSpawner
   customerPrefab: {fileID: 8218466806727451714, guid: 0f6e318d27906b34a834fe0eaddf746c, type: 3}
   spawnPoint: {fileID: 2063897580}
-  spawnInterval: 5
+  spawnInterval: 0.25
   maxCustomers: 10
   isSpawning: 1
 --- !u!1 &1122454680
@@ -3234,12 +3246,12 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 78517946}
         m_TargetAssemblyTypeName: PlacementManager, Assembly-CSharp
         m_MethodName: SelectObjectToBuild
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgument: {fileID: 962488299}
           m_ObjectArgumentAssemblyTypeName: Placeable, Assembly-CSharp
           m_IntArgument: 0
           m_FloatArgument: 0
@@ -3641,12 +3653,12 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 78517946}
         m_TargetAssemblyTypeName: PlacementManager, Assembly-CSharp
         m_MethodName: SelectObjectToBuild
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgument: {fileID: 4988880691181952918, guid: 40742c2a4cea6564f81d8cc36b8d7ab8, type: 3}
           m_ObjectArgumentAssemblyTypeName: Placeable, Assembly-CSharp
           m_IntArgument: 0
           m_FloatArgument: 0
@@ -3717,7 +3729,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6605632584286460019, guid: ef68ec6ae18d2854b86e5d64a81456bf, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6605632584286460019, guid: ef68ec6ae18d2854b86e5d64a81456bf, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3782,6 +3794,10 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 3888575870aa18f4e9527b05ac53beb4, type: 2}
     - target: {fileID: 1288360377546835486, guid: 7caa779423c3f554881af09dd4aa0027, type: 3}
       propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1474034999949766825, guid: 7caa779423c3f554881af09dd4aa0027, type: 3}
+      propertyPath: isManned
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1474034999949766825, guid: 7caa779423c3f554881af09dd4aa0027, type: 3}
@@ -3850,7 +3866,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7508760673612586078, guid: 7caa779423c3f554881af09dd4aa0027, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.0000042915344
+      value: -0.9999957
       objectReference: {fileID: 0}
     - target: {fileID: 7508760673612586078, guid: 7caa779423c3f554881af09dd4aa0027, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3858,7 +3874,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7508760673612586078, guid: 7caa779423c3f554881af09dd4aa0027, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -4
+      value: -4.000001
       objectReference: {fileID: 0}
     - target: {fileID: 7508760673612586078, guid: 7caa779423c3f554881af09dd4aa0027, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4338,7 +4354,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 78517946}
         m_TargetAssemblyTypeName: PlacementManager, Assembly-CSharp
         m_MethodName: ToggleBuildMode
         m_Mode: 1
@@ -4444,7 +4460,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 0}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

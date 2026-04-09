@@ -8,17 +8,10 @@ public class CustomerAI : MonoBehaviour
 {
     public enum CustomerState
     {
-        Entering,
-        WalkingToShelf,
-        Browsing,
-        WalkingToDesk,
-        Queuing,
-        Paying,
-        Leaving
+        Entering, WalkingToShelf, Browsing, WalkingToDesk, Queuing, Paying, Leaving, WaitingForDesk, WaitingForShelf
     }
 
     [Header("FX References")]
-    public GameObject floatingTextPrefab;
     public Transform headTransform;
 
     [Header("State")]
@@ -29,8 +22,11 @@ public class CustomerAI : MonoBehaviour
     public float payTime = 2f;
 
     [Header("Patience Settings")]
-    public float maxWaitTime = 20f;
+    public float waitBeforeBarSpawns = 5f;
+    public float patienceDepletionTime = 10f;
+    
     private float currentWaitTimer = 0f;
+    private WaitBarUI currentWaitBar;
 
     private BookContainer targetShelf;
     private CheckoutDesk targetDesk;
@@ -41,6 +37,7 @@ public class CustomerAI : MonoBehaviour
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        agent.avoidancePriority = Random.Range(1, 100); 
     }
 
     private void Start()
@@ -50,14 +47,20 @@ public class CustomerAI : MonoBehaviour
 
         FindSmartTargets();
         
-        if (targetShelf != null && targetDesk != null)
+        // Only leave if there is literally no checkout desk.
+        if (targetDesk == null)
+        {
+            Debug.LogWarning("Missing checkout desk. Leaving.");
+            ChangeState(CustomerState.Leaving);
+        }
+        else if (targetShelf != null)
         {
             ChangeState(CustomerState.WalkingToShelf);
         }
         else
         {
-            Debug.LogWarning("Missing shelf or checkout desk. Leaving.");
-            ChangeState(CustomerState.Leaving);
+            // Desk exists, but no shelves are free. Wait at the entrance!
+            ChangeState(CustomerState.WaitingForShelf);
         }
     }
 
@@ -65,92 +68,148 @@ public class CustomerAI : MonoBehaviour
     {
         switch (currentState)
         {
+            // Checking for shelves while waiting
+            case CustomerState.WaitingForShelf:
+                // Only run the search a few times a second to save performance, not every single frame
+                if (Time.frameCount % 30 == 0) 
+                {
+                    FindSmartTargets();
+                    if (targetShelf != null)
+                    {
+                        ChangeState(CustomerState.WalkingToShelf);
+                        break;
+                    }
+                }
+                
+                // If they don't find a shelf, they get impatient and the bar spawns
+                HandlePatienceTimer();
+                break;
+
             case CustomerState.WalkingToShelf:
                 if (HasReachedDestination()) ChangeState(CustomerState.Browsing);
                 break;
 
             case CustomerState.WalkingToDesk:
-            if (HasReachedDestination()) ChangeState(CustomerState.Queuing);
-            break;
+                if (Vector3.Distance(transform.position, agent.destination) < 1.5f || 
+                   (agent.remainingDistance < 2.5f && agent.velocity.sqrMagnitude < 0.05f)) 
+                {
+                    ChangeState(CustomerState.Queuing);
+                }
+                break;
+
+            case CustomerState.WaitingForDesk:
+                if (targetDesk.CanJoinQueue())
+                {
+                    ChangeState(CustomerState.WalkingToDesk);
+                }
+                else
+                {
+                    HandlePatienceTimer(); 
+                }
+                break;
 
             case CustomerState.Queuing:
-                HandleQueuing();
-                break;
-                
-            case CustomerState.Paying:
+                if (targetDesk.IsAtFront(this) && Vector3.Distance(transform.position, targetDesk.GetPositionInLine(this)) < 1.5f)
+                {
+                    ChangeState(CustomerState.Paying);
+                }
+                else
+                {
+                    HandlePatienceTimer();
+                }
                 break;
         }
     }
 
-    private void HandleWaiting()
+    private void HandlePatienceTimer()
     {
-        // Every few seconds, check if a shelf has opened up
         currentWaitTimer += Time.deltaTime;
-        
-        // Check for shelf every 2 seconds to save performance
-        if (Mathf.FloorToInt(currentWaitTimer) % 2 == 0) 
+
+        if (currentWaitTimer < waitBeforeBarSpawns) return; 
+
+        if (currentWaitBar == null && PopupManager.Instance != null)
         {
-            FindSmartTargets();
-            if (targetShelf != null)
+            Transform anchor = headTransform != null ? headTransform : transform;
+            currentWaitBar = PopupManager.Instance.CreateWaitBar(anchor);
+        }
+
+        if (currentWaitBar != null)
+        {
+            float timeSinceBarSpawned = currentWaitTimer - waitBeforeBarSpawns;
+            float remainingPatience = 1f - (timeSinceBarSpawned / patienceDepletionTime);
+            
+            currentWaitBar.UpdateProgress(Mathf.Clamp01(remainingPatience));
+
+            if (timeSinceBarSpawned >= patienceDepletionTime)
             {
-                ChangeState(CustomerState.WalkingToShelf);
-                return;
+                Debug.Log("Patience reached zero. Storming out!");
+                ChangeState(CustomerState.Leaving);
             }
-        }
-
-        if (currentWaitTimer >= maxWaitTime)
-        {
-            Debug.Log("Gave up waiting for a shelf.");
-            ChangeState(CustomerState.Leaving);
-        }
-    }
-
-    private void HandleQueuing()
-    {
-        // 1. Check if we are first in line AND the desk is ready
-        // Note: For now, we'll assume it's always ready until we add StaffAI
-        if (targetDesk.IsAtFront(this))
-        {
-            ChangeState(CustomerState.Paying);
-            return;
-        }
-
-        // 2. Future Logic: Patience/Anger
-        currentWaitTimer += Time.deltaTime;
-        if (currentWaitTimer >= maxWaitTime)
-        {
-            Debug.Log("Customer lost patience and left!");
-            ChangeState(CustomerState.Leaving);
         }
     }
 
     private void ChangeState(CustomerState newState)
     {
         currentState = newState;
+        
+        currentWaitTimer = 0f;
+        ClearWaitBar();
 
         switch (currentState)
         {
+            // Step to the side while waiting
+            case CustomerState.WaitingForShelf:
+                // Pick a random spot within a 2.5m radius to stand in the "lobby"
+                Vector3 wanderPos = transform.position + new Vector3(Random.Range(-2.5f, 2.5f), 0, Random.Range(-2.5f, 2.5f));
+                
+                // Ensure the point is safely on the NavMesh so they don't walk through walls
+                if (NavMesh.SamplePosition(wanderPos, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+                {
+                    agent.SetDestination(hit.position);
+                }
+                else
+                {
+                    agent.SetDestination(transform.position); 
+                }
+                break;
+
             case CustomerState.WalkingToShelf:
                 Transform shelfNode = targetShelf.ReserveSlot();
-                agent.SetDestination(shelfNode != null ? shelfNode.position : targetShelf.transform.position);
+                if (shelfNode != null)
+                {
+                    agent.SetDestination(shelfNode.position);
+                }
+                else
+                {
+                    // Spot was stolen while calculating! Go back to waiting.
+                    ChangeState(CustomerState.WaitingForShelf);
+                }
                 break;
 
             case CustomerState.Browsing:
                 StartCoroutine(BrowseRoutine());
                 break;
 
-           case CustomerState.WalkingToDesk:
-            targetShelf.ReleaseSlot();
-            // Ask the desk where to stand
-            agent.SetDestination(targetDesk.JoinQueue(this));
-            break;
+            case CustomerState.WalkingToDesk:
+                targetShelf.ReleaseSlot();
+                agent.SetDestination(targetDesk.JoinQueue(this));
+                break;
+
+            case CustomerState.WaitingForDesk:
+                targetShelf.ReleaseSlot();
+                Vector3 stepAside = transform.position + new Vector3(Random.Range(-1.5f, 1.5f), 0, Random.Range(-1.5f, 1.5f));
+                agent.SetDestination(stepAside);
+                break;
+
+            case CustomerState.Queuing:
+                break;
 
             case CustomerState.Paying:
                 StartCoroutine(PayRoutine());
                 break;
 
             case CustomerState.Leaving:
-                if(targetDesk != null) targetDesk.LeaveQueue(this);
+                if (targetDesk != null) targetDesk.LeaveQueue(this);
                 if (exitNode != null) agent.SetDestination(exitNode.position);
                 break;
         }
@@ -159,10 +218,16 @@ public class CustomerAI : MonoBehaviour
     private IEnumerator BrowseRoutine()
     {
         yield return new WaitForSeconds(browseTime);
-        
         if (targetShelf.TryTakeBook())
         {
-            ChangeState(CustomerState.WalkingToDesk);
+            if (targetDesk.CanJoinQueue())
+            {
+                ChangeState(CustomerState.WalkingToDesk);
+            }
+            else
+            {
+                ChangeState(CustomerState.WaitingForDesk);
+            }
         }
         else
         {
@@ -176,12 +241,8 @@ public class CustomerAI : MonoBehaviour
         yield return new WaitForSeconds(payTime);
         targetDesk.ProcessPayment();
 
-        if (EconomyManager.Instance != null)
-        {
-            EconomyManager.Instance.AddMoney(1);
-        }
+        if (EconomyManager.Instance != null) EconomyManager.Instance.AddMoney(1);
 
-        // Trigger the popup via the Manager
         if (PopupManager.Instance != null)
         {
             Vector3 spawnPos = headTransform != null ? headTransform.position : transform.position;
@@ -202,15 +263,15 @@ public class CustomerAI : MonoBehaviour
     private bool HasReachedDestination()
     {
         if (agent.pathPending) return false;
-        
-        // If we are within a reasonable range of the exit/target, count it as reached
-        if (agent.remainingDistance <= agent.stoppingDistance + 0.5f) 
+        if (!agent.hasPath) return true; 
+
+        if (agent.remainingDistance <= agent.stoppingDistance + 0.5f) return true;
+
+        if (agent.remainingDistance <= 2.5f && agent.velocity.sqrMagnitude < 0.05f) 
         {
-            if (!agent.hasPath || agent.velocity.sqrMagnitude < 0.2f)
-            {
-                return true;
-            }
+            return true;
         }
+        
         return false;
     }
 
@@ -221,19 +282,14 @@ public class CustomerAI : MonoBehaviour
 
     private void FindSmartTargets()
     {
-        // 1. Tag-based lookup for Bookshelves
         GameObject[] shelfObjects = GameObject.FindGameObjectsWithTag("BookContainer");
         List<BookContainer> availableShelves = new List<BookContainer>();
 
         foreach (GameObject obj in shelfObjects)
         {
-            // TryGetComponent is heavily optimised and prevents null reference exceptions
             if (obj.TryGetComponent(out BookContainer shelf))
             {
-                if (shelf.HasAvailableSlot())
-                {
-                    availableShelves.Add(shelf);
-                }
+                if (shelf.HasAvailableSlot()) availableShelves.Add(shelf);
             }
         }
 
@@ -242,12 +298,32 @@ public class CustomerAI : MonoBehaviour
             int randomIndex = Random.Range(0, availableShelves.Count);
             targetShelf = availableShelves[randomIndex];
         }
-
-        // 2. Tag-based lookup for the Checkout Desk
-        GameObject deskObj = GameObject.FindGameObjectWithTag("CheckoutDesk");
-        if (deskObj != null)
+        else
         {
-            targetDesk = deskObj.GetComponent<CheckoutDesk>();
+            // Explicitly clear it so they know it's full
+            targetShelf = null;
+        }
+
+        GameObject deskObj = GameObject.FindGameObjectWithTag("CheckoutDesk");
+        if (deskObj != null) targetDesk = deskObj.GetComponent<CheckoutDesk>();
+    }
+
+    private void ClearWaitBar()
+    {
+        if (currentWaitBar != null)
+        {
+            Destroy(currentWaitBar.gameObject);
+            currentWaitBar = null;
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (currentState == CustomerState.Leaving && other.CompareTag("Exit"))
+        {
+            ClearWaitBar();
+            if (mySpawner != null) mySpawner.OnCustomerLeft();
+            Destroy(gameObject);
         }
     }
 }

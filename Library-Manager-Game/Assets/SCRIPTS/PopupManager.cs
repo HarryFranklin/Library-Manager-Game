@@ -23,6 +23,9 @@ public class PopupManager : MonoBehaviour
     public Color gainColor = Color.green;
     public Color lossColor = Color.red;
 
+    [Header("Wait Bar Settings")]
+    public GameObject waitBarPrefab;
+
     private static PopupManager instance;
     public static PopupManager Instance
     {
@@ -78,5 +81,27 @@ public class PopupManager : MonoBehaviour
         {
             popup.Initialise(text, color, defaultFontSize, defaultDuration, defaultMoveDistance);
         }
+    }
+
+    // Instantiates a wait bar and returns the component so the AI can update it.
+    public WaitBarUI CreateWaitBar(Transform target)
+    {
+        if (waitBarPrefab == null || canvas == null)
+        {
+            Debug.LogWarning("PopupManager: Missing Wait Bar Prefab or Canvas.");
+            return null;
+        }
+
+        // Spawn inside the World Space Canvas
+        GameObject barObj = Instantiate(waitBarPrefab, canvas.transform);
+        WaitBarUI waitBar = barObj.GetComponent<WaitBarUI>();
+
+        if (waitBar != null)
+        {
+            // Use the same popupOffset we established for the floating text
+            waitBar.Initialise(target, popupOffset);
+        }
+
+        return waitBar;
     }
 }

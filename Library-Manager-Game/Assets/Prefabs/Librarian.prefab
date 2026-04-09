@@ -156,7 +156,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3888575870aa18f4e9527b05ac53beb4, type: 2}
+  - {fileID: 2100000, guid: a46f9ca616e628c40a29d5a3666ec4af, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -280,11 +280,11 @@ GameObject:
   m_Component:
   - component: {fileID: 6384596554961683530}
   - component: {fileID: 4674065878965273674}
-  - component: {fileID: 1823171924327103619}
+  - component: {fileID: -2605233711218827453}
   - component: {fileID: 1007647695001369180}
   - component: {fileID: 2138600992928969441}
   m_Layer: 8
-  m_Name: Customer
+  m_Name: Librarian
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -330,7 +330,7 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!114 &1823171924327103619
+--- !u!114 &-2605233711218827453
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -339,15 +339,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8218466806727451714}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a10c15a51c16d04c960a815778b33c1, type: 3}
+  m_Script: {fileID: 11500000, guid: 5e80909093db4b84a88d1776b2254f9f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CustomerAI
-  headTransform: {fileID: 2365930061280016039}
+  m_EditorClassIdentifier: Assembly-CSharp::Librarian
   currentState: 0
-  browseTime: 3
-  payTime: 2
-  waitBeforeBarSpawns: 5
-  patienceDepletionTime: 10
 --- !u!136 &1007647695001369180
 CapsuleCollider:
   m_ObjectHideFlags: 0
