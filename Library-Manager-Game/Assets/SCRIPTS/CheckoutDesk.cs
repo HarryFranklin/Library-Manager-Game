@@ -11,6 +11,8 @@ public class CheckoutDesk : Placeable
     public bool hasStaffAssigned = false; 
     public bool isManned = false; 
 
+    public Librarian activeLibrarian;
+
     [Header("Queue Settings")]
     public List<Transform> queueNodes = new List<Transform>();
     private List<CustomerAI> customersInQueue = new List<CustomerAI>();
@@ -29,6 +31,7 @@ public class CheckoutDesk : Placeable
     {
         hasStaffAssigned = false;
         isManned = false;
+        activeLibrarian = null;
     }
 
     public bool CanJoinQueue()

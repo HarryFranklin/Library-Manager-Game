@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6144761079732456544}
   - component: {fileID: 6316280507723201733}
   - component: {fileID: 9019266712630060736}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: Front
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -101,7 +101,7 @@ GameObject:
   - component: {fileID: 4577297180466708734}
   - component: {fileID: 7793496948817899101}
   - component: {fileID: 8784615538902326521}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -191,7 +191,7 @@ GameObject:
   - component: {fileID: 2365930061280016039}
   - component: {fileID: 5267553431421087404}
   - component: {fileID: 6928436943089378397}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -283,7 +283,7 @@ GameObject:
   - component: {fileID: -2605233711218827453}
   - component: {fileID: 1007647695001369180}
   - component: {fileID: 2138600992928969441}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: Librarian
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -342,7 +342,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e80909093db4b84a88d1776b2254f9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Librarian
+  currentLevel: 1
+  currentXP: 0
+  xpToNextLevel: 5
   currentState: 0
+  baseCheckoutTime: 2
 --- !u!136 &1007647695001369180
 CapsuleCollider:
   m_ObjectHideFlags: 0

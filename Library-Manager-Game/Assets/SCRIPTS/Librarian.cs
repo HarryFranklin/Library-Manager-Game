@@ -7,6 +7,9 @@ public class Librarian : StaffAI
     [Header("State")]
     public LibrarianState currentState = LibrarianState.Idle;
 
+    [Header("Librarian Stats")]
+    public float baseCheckoutTime = 2.0f; // Default time at Level 1
+
     private CheckoutDesk assignedDesk;
 
     private void Start()
@@ -76,14 +79,24 @@ public class Librarian : StaffAI
             case LibrarianState.Working:
                 if (assignedDesk != null)
                 {
-                    // Snap them perfectly into position and rotation behind the desk
                     transform.position = assignedDesk.staffNode.position;
                     transform.rotation = assignedDesk.staffNode.rotation;
-                    
-                    // Tell the desk to start processing the customer queue
                     assignedDesk.isManned = true;
+                    
+                    // Tell the desk exactly WHO is manning it
+                    assignedDesk.activeLibrarian = this; 
                 }
                 break;
         }
+    }
+
+    // Calculates the speed: Reduces time by 10% (0.1f) per level above 1.
+    public float GetCheckoutSpeed()
+    {
+        // Level 1 = 0% reduction, Level 2 = 10% reduction, Level 5 = 40% reduction
+        float reductionMultiplier = 1f - ((currentLevel - 1) * 0.10f);
+        
+        // Clamp it so they never process instantly (minimum 0.5 seconds)
+        return Mathf.Max(0.5f, baseCheckoutTime * reductionMultiplier);
     }
 }

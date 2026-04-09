@@ -238,8 +238,24 @@ public class CustomerAI : MonoBehaviour
 
     private IEnumerator PayRoutine()
     {
-        yield return new WaitForSeconds(payTime);
+        float actualPayTime = payTime; // Fallback
+
+        // Ask the Librarian for their current speed
+        if (targetDesk.activeLibrarian != null)
+        {
+            actualPayTime = targetDesk.activeLibrarian.GetCheckoutSpeed();
+        }
+
+        // Wait for the dynamically calculated time
+        yield return new WaitForSeconds(actualPayTime);
+        
         targetDesk.ProcessPayment();
+
+        // Give the Librarian 1 XP for processing the customer!
+        if (targetDesk.activeLibrarian != null)
+        {
+            targetDesk.activeLibrarian.GainXP(1);
+        }
 
         if (EconomyManager.Instance != null) EconomyManager.Instance.AddMoney(1);
 

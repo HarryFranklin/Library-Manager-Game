@@ -782,7 +782,9 @@ MonoBehaviour:
   interactionNodes:
   - {fileID: 6687460939577762713}
   staffNode: {fileID: 1832334741564696909}
+  hasStaffAssigned: 0
   isManned: 0
+  activeLibrarian: {fileID: 0}
   queueNodes:
   - {fileID: 5951408003794745248}
   - {fileID: 3113459430555339800}
